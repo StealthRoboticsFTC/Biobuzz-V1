@@ -11,16 +11,27 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 @Configurable
 public class IntakeTest extends LinearOpMode {
     DcMotorEx intake;
-    public static double power = 0;
+    DcMotorEx transfer;
+    public static double intakePower = 0;
+    public static double transferPower = 0;
     @Override
     public void runOpMode() throws InterruptedException {
         intake = hardwareMap.get(DcMotorEx.class, "intake");
+        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        transfer = hardwareMap.get(DcMotorEx.class, "transfer");
+        transfer.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        transfer.setDirection(DcMotorSimple.Direction.REVERSE);
+        transfer.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         waitForStart();
         while (!isStopRequested()){
-            intake.setPower(power);
+            intake.setPower(intakePower);
+            transfer.setPower(transferPower);
         }
 
     }
+
+
+
 }
