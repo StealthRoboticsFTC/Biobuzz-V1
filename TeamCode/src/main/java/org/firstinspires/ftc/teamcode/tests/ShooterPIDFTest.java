@@ -7,17 +7,23 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-import org.firstinspires.ftc.teamcode.common.controllers.FlywheelController;
+import org.firstinspires.ftc.teamcode.common.controllers.PIDFCoefficients;
+import org.firstinspires.ftc.teamcode.common.controllers.PIDFController;
 
-@Configurable
+
 @TeleOp
-public class ShooterTest extends LinearOpMode {
-    public static double kP = 0;
-    public static double kD = 0;
-    public static double kV = 0;
+@Configurable
+public class ShooterPIDFTest extends LinearOpMode {
+
+    public static double kp = 0;
+    public static double ki = 0;
+    public static double kd = 0;
+    public static double kf = 0;
     DcMotorEx shooterMotor1;
     DcMotorEx shooterMotor2;
-    FlywheelController flywheelController;
+
+    PIDFController controller;
+
     public static int targetVelocity = 0;
     @Override
     public void runOpMode() throws InterruptedException {
@@ -28,18 +34,24 @@ public class ShooterTest extends LinearOpMode {
         shooterMotor2 = hardwareMap.get(DcMotorEx.class, "shooter2");
         shooterMotor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shooterMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        shooterMotor2.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooterMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        flywheelController = new FlywheelController();
-        flywheelController.setCoefficients(kP,kD,kV);
+        controller = new PIDFController(new PIDFCoefficients(kp, ki, kd, kf));
         waitForStart();
         while (!isStopRequested()){
-            flywheelController.setTargetVelocity(targetVelocity);
-            double power = flywheelController.update(shooterMotor1.getVelocity());
-            shooterMotor1.setPower(power);
-            shooterMotor2.setPower(power);
-            telemetry.addData("velocity", shooterMotor1.getVelocity());
-            telemetry.addData("power", power);
+            controller.setD(kd);
+            controller.setF(kf);
+            controller.setP(kp);
+            controller.setI(ki);
+            controller.updateFeedForwardInput(targetVelocity);
+            controller.setTargetPosition(targetVelocity);
+            controller.updatePosition(shooterMotor1.getVelocity());
+            shooterMotor1.setPower(controller.run());
+            shooterMotor2.setPower(controller.run());
+
+            telemetry.addData("TargetVelocity", targetVelocity);
+            telemetry.addData("CurrentVelocity", shooterMotor1.getVelocity());
+            telemetry.addData("Power", controller.run());
             telemetry.update();
 
         }
